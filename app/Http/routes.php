@@ -14,3 +14,8 @@
 Route::get('/', function () {
     return view('welcome');
 });
+
+Route::group(['prefix' => '/', 'middleware' => ['guest']], function() { 
+      
+	Route::get('get/usuarios', 'Usuario@getUsuarios');
+});
