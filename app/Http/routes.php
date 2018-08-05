@@ -18,4 +18,6 @@ Route::get('/', function () {
 Route::group(['prefix' => '/', 'middleware' => ['guest']], function() { 
       
 	Route::get('get/usuarios', 'Usuario@getUsuarios');
+	Route::get('get/usuario/{username}/{password}', 'Usuario@getUsuario');
+	Route::get('get/api', 'Usuario@consumeApi');
 });
