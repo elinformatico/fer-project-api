@@ -28,4 +28,7 @@ Route::group(['prefix' => '/', 'middleware' => ['guest']], function() {
 	# Usuarios
     Route::post('store/usuario', 'Usuario@registrarUsuario');
 
+    # Correspondencia
+    Route::get('get/dependencias', 'Correspondencia@getDependencias');
+    Route::post('store/dependencia', 'Correspondencia@registrarDependencia');
 });
