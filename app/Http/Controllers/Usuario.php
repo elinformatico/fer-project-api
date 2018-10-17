@@ -82,6 +82,57 @@ class Usuario extends Controller
         }
     }
 
+    public function registrarUsuario() 
+    {
+        try {
+
+            # Verificar que no existe nombre de Usuario
+            $nombreUsuario = DB::table("usuario")
+                                        ->select("usr_nombre_usuario as username")
+                                        ->where("usr_nombre_usuario", $_REQUEST['nombreUsuario'])
+                                        ->first();
+
+            $departamentoId = $_REQUEST['selectedDepartamento'];
+
+            if(!isset($nombreUsuario->username)) {
+
+                $userId = DB::table('usuario')->insertGetId(
+                    [
+                        'usr_nombre_usuario'    => $_REQUEST['nombreUsuario'],
+                        'usr_nombres'           => $_REQUEST['nombre'], 
+                        'usr_apellido_paterno'  => $_REQUEST['apellidoPaterno'],
+                        'usr_apellido_materno'  => $_REQUEST['apellidoMaterno'],
+                        'usr_password'          => md5($_REQUEST['password']),
+                        'usr_tipo'              => $_REQUEST['rolUsuario'],
+                        'usr_fecha_creacion'    => DB::raw('NOW()'),
+                    ]
+                );
+
+                if($userId != -1){
+                    if($_REQUEST["esJefe"] == "true")
+                    {
+                        $jefeId = DB::table("jefe_departamento")->insert(
+                            [
+                                "jef_dep_id_fk" => $departamentoId,
+                                "jef_usr_id_fk" => $userId,
+                            ]
+                        );
+                    }
+
+                    return Response()->json(array('status' => 'success', 'msg' => "Se registro el Usuario correctamente."));
+                } else {
+                    return Response()->json(array('status' => 'error', 'msg' => "No se pudo registrar el Usuario."));
+                }
+
+            } else {
+                return Response()->json(array('status' => 'error', 'msg' => "El nombre de Usuario --> [{$_REQUEST['nombreUsuario']}] ya se encuentra registrado en el Sistema, porfavor eligue otro diferente!"));
+            }
+
+        } catch(\Illuminate\Database\QueryException $e){            
+            return Response()->json(array('status' => 'error', 'msg'=>'Hubo un Error al registrar los datos','error'=>$e));
+        }
+    }
+
     public function consumeApi() 
     {
         
