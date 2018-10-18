@@ -112,6 +112,10 @@ class Usuario extends Controller
     {
         try {
 
+            $userId = "";
+            $departamentoId = "";
+            $jefeId = "";
+
             # Verificar que no existe nombre de Usuario
             $nombreUsuario = DB::table("usuario")
                                         ->select("usr_nombre_usuario as username")
@@ -120,8 +124,8 @@ class Usuario extends Controller
 
             $departamentoId = $_REQUEST['selectedDepartamento'];
 
-            if(!isset($nombreUsuario->username)) {
-
+            if(!isset($nombreUsuario->username)) 
+            {
                 $userId = DB::table('usuario')->insertGetId(
                     [
                         'usr_nombre_usuario'    => $_REQUEST['nombreUsuario'],
@@ -134,24 +138,61 @@ class Usuario extends Controller
                     ]
                 );
 
-                if($userId != -1){
-                    if($_REQUEST["esJefe"] == "true")
+                if($userId == "") {
+                    return Response()->json([
+                        'msg'    => 'Hubo un error al intentar registar el Usuario', 
+                        'status' => "error",
+                    ]);
+                }
+                
+                # Si var ser Jefe, se tiene que seleccionar un departamento en el cual sera Jefe
+                if(isset($_REQUEST["esJefe"]) && $_REQUEST["esJefe"] == "true")
+                {
+                    # Intentamos registrar el departamento
+                    if(isset($_REQUEST['nuevoDepartamento']) && $_REQUEST['nuevoDepartamento'] === 'true') 
                     {
-                        $jefeId = DB::table("jefe_departamento")->insert(
+                        $departamentoId = DB::table('departamento')->insertGetId(
                             [
-                                "jef_dep_id_fk" => $departamentoId,
-                                "jef_usr_id_fk" => $userId,
+                                'dep_nombre'           => $_REQUEST['txtNuevoDepartamento'], 
+                                'dep_fecha_creacion'    => DB::raw('NOW()'),
                             ]
-                        );
+                        );   
+
+                        if($departamentoId == "") {
+                            return Response()->json([
+                                'msg'    => 'Hubo un error al intentar registar el departamento', 
+                                'status' => "error",
+                            ]);
+                        }
+                    } else {
+                        $departamentoId = $_REQUEST['selectedDepartamento'];
                     }
 
-                    return Response()->json(array('status' => 'success', 'msg' => "Se registro el Usuario correctamente."));
-                } else {
-                    return Response()->json(array('status' => 'error', 'msg' => "No se pudo registrar el Usuario."));
-                }
+                    $jefeId = DB::table("jefe_departamento")->insert(
+                        [
+                            "jef_dep_id_fk" => $departamentoId,
+                            "jef_usr_id_fk" => $userId,
+                        ]
+                    );
 
+                    if($jefeId == "") {
+                        return Response()->json([
+                            'msg'    => 'Hubo un error al intentar registrar la relaccion con el Jefe departamento', 
+                            'status' => "error",
+                        ]);
+                    }
+                }                
+
+                return Response()->json([
+                    'status' => 'success', 
+                    'msg'    => "Se registro el Usuario correctamente."
+                ]);
+                
             } else {
-                return Response()->json(array('status' => 'error', 'msg' => "El nombre de Usuario --> [{$_REQUEST['nombreUsuario']}] ya se encuentra registrado en el Sistema, porfavor eligue otro diferente!"));
+                return Response()->json([
+                    'status' => 'error', 
+                    'msg' => "El nombre de Usuario --> [{$_REQUEST['nombreUsuario']}] ya se encuentra registrado en el Sistema, porfavor eligue otro diferente!"
+                ]);
             }
 
         } catch(\Illuminate\Database\QueryException $e){            
