@@ -47,6 +47,7 @@ class Correspondencia extends Controller
     public function registrarDependencia() 
     {
     	try {
+            
             $depenciaId = "";
             $departamentoId = "";
 
@@ -59,6 +60,13 @@ class Correspondencia extends Controller
                         'dpc_fecha_creacion'    => DB::raw('NOW()'),
                     ]
                 );
+
+                if($depenciaId == "") {
+                    return Response()->json([
+                        'msg'    => 'Hubo un error al intentar registar la dependencia', 
+                        'status' => "error",
+                    ]);
+                }
 
             } else {
                 $depenciaId = $_REQUEST['corrSelectedDependencia'];
@@ -73,11 +81,18 @@ class Correspondencia extends Controller
                         'dep_fecha_creacion'    => DB::raw('NOW()'),
                     ]
                 );   
+
+                if($departamentoId == "") {
+                    return Response()->json([
+                        'msg'    => 'Hubo un error al intentar registar el departamento', 
+                        'status' => "error",
+                    ]);
+                }
+
             } else {
                 $departamentoId = $_REQUEST['corrSelectedDepartamento'];
             }
             
-
             if($depenciaId != ""){
 
                 $correspondenciaId = DB::table('correspondencia')->insertGetId(
@@ -94,10 +109,16 @@ class Correspondencia extends Controller
                     ]
                 );
 
-                echo "Se registro la correspondencia con el ID {$correspondenciaId}";
+                return Response()->json([
+                   'msg'    => 'La Correspondencia se registro Satisfactoriamente', 
+                   'status' => "success",
+                ]);
 
             } else {
-                echo "No se pudo registrar la dependencia";
+                return Response()->json([
+                   'msg'    => 'No se pudo registrar la dependencia correctamente', 
+                   'status' => "error",
+                ]);
             }
 
         } catch(\Illuminate\Database\QueryException $e){            
