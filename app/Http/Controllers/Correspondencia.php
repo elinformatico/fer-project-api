@@ -47,14 +47,12 @@ class Correspondencia extends Controller
     public function registrarDependencia() 
     {
     	try {
-
-    		print_r($_REQUEST);
             $depenciaId = "";
+            $departamentoId = "";
 
-            // Verificamos si se va registrar o seleccionar nueva dependencia
-            if(isset($_REQUEST['nuevaDependencia']) && $_REQUEST['nuevaDependencia'] === 'true'){
-                echo "Registrando nueva dependencia";
-
+            # Verificamos si se va registrar o seleccionar nueva dependencia
+            if(isset($_REQUEST['nuevaDependencia']) && $_REQUEST['nuevaDependencia'] === 'true')
+            {
                 $depenciaId = DB::table('dependencia')->insertGetId(
                     [
                         'dpc_nombre'           => $_REQUEST['txtNuevaDependencia'], 
@@ -64,9 +62,21 @@ class Correspondencia extends Controller
 
             } else {
                 $depenciaId = $_REQUEST['corrSelectedDependencia'];
-
-                echo "Registrando dependencia existente selecionada como {$_REQUEST['corrSelectedDependencia']}";
             }
+
+            # Verificamos si vamos a registrar departamento o no
+            if(isset($_REQUEST['nuevoDepartamento']) && $_REQUEST['nuevoDepartamento'] === 'true')
+            {
+                $departamentoId = DB::table('departamento')->insertGetId(
+                    [
+                        'dep_nombre'           => $_REQUEST['txtNuevoDepartamento'], 
+                        'dep_fecha_creacion'    => DB::raw('NOW()'),
+                    ]
+                );   
+            } else {
+                $departamentoId = $_REQUEST['corrSelectedDepartamento'];
+            }
+            
 
             if($depenciaId != ""){
 
@@ -74,7 +84,7 @@ class Correspondencia extends Controller
                     [
                         'cor_referencia'       => $_REQUEST['corrReferencia'], 
                         'cor_dpc_id_fk'        => $depenciaId,
-                        'cor_dep_id_fk'        => $_REQUEST['corrSelectedDepartamento'],
+                        'cor_dep_id_fk'        => $departamentoId,
                         'cor_usr_id_fk'        => $_REQUEST['corrSelectedDirigidoA'],
                         'cor_descripcion'      => $_REQUEST['corrDescripcion'],
                         'cor_observaciones'    => $_REQUEST['corrObservaciones'],
