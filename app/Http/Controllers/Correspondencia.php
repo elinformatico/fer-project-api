@@ -48,6 +48,9 @@ class Correspondencia extends Controller
     {
     	try {
             
+            $fechaObtenida = explode("/", $_REQUEST['corrTiempoLimiteRespuesta']);
+            $fechaLimiteRespuesta =  "{$fechaObtenida[2]}-{$fechaObtenida[0]}-$fechaObtenida[1] 23:59:59";
+            
             $depenciaId = "";
             $departamentoId = "";
 
@@ -104,7 +107,7 @@ class Correspondencia extends Controller
                         'cor_descripcion'      => $_REQUEST['corrDescripcion'],
                         'cor_observaciones'    => $_REQUEST['corrObservaciones'],
                         'cor_reg_nueva_dpc'    => (($_REQUEST['nuevaDependencia'] === 'true') ? "1" : "0"),
-                        'cor_limite_respuesta' => DB::raw('NOW()'),  # TODO, Get Real Date
+                        'cor_limite_respuesta' => $fechaLimiteRespuesta,
                         'cor_fecha_creacion'   => DB::raw('NOW()'),
                     ]
                 );
