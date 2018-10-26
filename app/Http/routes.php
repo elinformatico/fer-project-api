@@ -31,4 +31,6 @@ Route::group(['prefix' => '/', 'middleware' => ['guest']], function() {
     # Correspondencia
     Route::get('get/dependencias', 'Correspondencia@getDependencias');
     Route::post('store/dependencia', 'Correspondencia@registrarDependencia');
+	Route::get('get/memos-oficios/correspondencias/{correspondenciaId}', 'Correspondencia@getCorrespondencia');
+	Route::post('store/memos-oficios', 'OficioYMemo@registrarMemoOficio');
 });

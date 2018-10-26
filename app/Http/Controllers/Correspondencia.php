@@ -31,7 +31,7 @@ class Correspondencia extends Controller
             	return Response()->json(
 	                array(
 	                    'msg'			=> 'No se encontraron dependencias registrados', 
-	                    'dependencias' => [],
+	                    'dependencias'  => [],
 	                    'status'		=> "error",
 	                )
 	            );
@@ -40,6 +40,46 @@ class Correspondencia extends Controller
         } catch(\Illuminate\Database\QueryException $e){
             return Response()->json(
                 array('msg'=>'Error de query al obtener los datos de dependencias.','error'=>$e)
+            );
+        }
+    }
+
+    public function getCorrespondencia($dependenciaId) 
+    {
+        try {
+
+            $correspondencias = DB::table('correspondencia')
+                        ->select(
+                            "cor_id as id",
+                            "cor_referencia as referencia",
+                            "cor_descripcion as descripcion",
+                            "cor_fecha_creacion as fecha"
+                        )
+                        ->where("cor_dpc_id_fk", "=", $dependenciaId)
+                        ->orderBy('fecha', 'desc')
+                        ->get();
+
+            if(count($correspondencias) > 0) {
+                return Response()->json(
+                    array(
+                        'msg'              => 'correspondencias obtenidas satisfactoriamente', 
+                        'correspondencias' => $correspondencias,
+                        'status'           => "success",
+                    )
+                );
+            } else {
+                return Response()->json(
+                    array(
+                        'msg'              => 'No se encontraron correspondencias registradas', 
+                        'correspondencias' => [],
+                        'status'           => "error",
+                    )
+                );
+            }
+
+        } catch(\Illuminate\Database\QueryException $e){
+            return Response()->json(
+                array('msg'=>'Error de query al obtener los datos de correspondencias.','error'=>$e)
             );
         }
     }
