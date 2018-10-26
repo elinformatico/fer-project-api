@@ -17,8 +17,7 @@ class Usuario extends Controller
             return Response()->json(
                 array(
                     'msg'=>'Vientos, todo jala chido', 
-                    'usuarios' => $usuarios, 
-                    "token" => "ZWxpbmZvcm1hdGljbw==|dXNlcg==|MjAxOC0wOC0wNCAxOjUyOjM5"
+                    'usuarios' => $usuarios
                 )
             );
         } catch(\Illuminate\Database\QueryException $e){
@@ -37,8 +36,8 @@ class Usuario extends Controller
                                 "usr_id as id",
                                 "dep_nombre as departamento"
                             )
-                            ->join('jefe_departamento', 'jef_usr_id_fk', '=', 'usr_id')
-                            ->join('departamento', 'dep_id', '=', 'jef_dep_id_fk')
+                            ->leftjoin('jefe_departamento', 'jef_usr_id_fk', '=', 'usr_id')
+                            ->leftjoin('departamento', 'dep_id', '=', 'jef_dep_id_fk')
                             ->get();
             return Response()->json(
                 array(
