@@ -88,8 +88,14 @@ class Correspondencia extends Controller
     {
     	try {
             
-            $fechaObtenida = explode("/", $_REQUEST['corrTiempoLimiteRespuesta']);
-            $fechaLimiteRespuesta =  "{$fechaObtenida[2]}-{$fechaObtenida[0]}-$fechaObtenida[1] 23:59:59";
+			$fechaObtenida = null;
+			$fechaLimiteRespuesta = "1990-01-01 00:00:00";
+			
+			if(isset($_REQUEST['corrTiempoLimiteRespuesta']) && $_REQUEST['corrTiempoLimiteRespuesta'] != "") 
+			{
+				$fechaObtenida = explode("/", $_REQUEST['corrTiempoLimiteRespuesta']);
+            	$fechaLimiteRespuesta =  "{$fechaObtenida[2]}-{$fechaObtenida[0]}-$fechaObtenida[1] 23:59:59";	
+			}
             
             $depenciaId = "";
             $departamentoId = "";
