@@ -53,12 +53,12 @@ class Usuario extends Controller
         }
     }
 
-    public function generateToken($username, $fullName, $typeUser, $minutesToExpire) 
+    public function generateToken($user_id, $username, $fullName, $typeUser, $minutesToExpire) 
     {
         $dateExpired = date("Y-m-d G:i:s", 
         mktime(date("G"), date("i") + $minutesToExpire, date("s"), date("m"), date("d"), date("Y"))); 
 
-        $token = base64_encode($username) . "|" . base64_encode($fullName) . "|" . base64_encode($typeUser) . "|" . base64_encode($dateExpired);
+        $token = base64_encode($user_id) . "|" .  base64_encode($username) . "|" . base64_encode($fullName) . "|" . base64_encode($typeUser) . "|" . base64_encode($dateExpired);
         return $token;
     }
 
@@ -67,6 +67,7 @@ class Usuario extends Controller
         try {
             $user = DB::table('usuario')
                             ->select(
+                                "usr_id as user_id",
                                 "usr_nombre_usuario as username",
                                 "usr_nombres as nombre",
                                 "usr_apellido_paterno as paterno",
@@ -81,7 +82,7 @@ class Usuario extends Controller
             {
                 $fullName = "{$user->nombre} {$user->paterno} {$user->materno}";
 
-                $token = $this->generateToken($user->username, $fullName, $user->typeUser, 30);
+                $token = $this->generateToken($user->user_id, $user->username, $fullName, $user->typeUser, 30);
 
                 return Response()->json(
                     array(
