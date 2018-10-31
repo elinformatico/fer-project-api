@@ -27,8 +27,13 @@ class OficioYMemo extends Controller
             }
 
             $table = ($_REQUEST['tipoRegistro'] == "memo") ? "memo" : "oficio";
+        
+             # Des-encriptar Usuario
+             $encodedString = base64_decode($_REQUEST['userId']);
+             $userId = explode("|", $encodedString);
+             $userId = $userId[1];
 
-            $insertedId = DB::table( $table )->insertGetId(
+             $insertedId = DB::table( $table )->insertGetId(
                    [
                        "{$table}_tipo_turnado_a"     => $_REQUEST['tipoTurnadoA'], 
                        "{$table}_turnado_a_id_fk"    => $turnadoA_id_fk,
@@ -36,7 +41,7 @@ class OficioYMemo extends Controller
                        "{$table}_anio"               => $_REQUEST['tipoAnio'],
                        "{$table}_asunto"             => $_REQUEST['txtAsunto'],
                        "{$table}_observaciones"      => $_REQUEST['txtObservaciones'],
-                       "{$table}_creador_id_fk"      => -1,
+                       "{$table}_creador_id_fk"      => $userId,
                        "{$table}_fecha_creacion"     => DB::raw('NOW()')
                    ]
             );
