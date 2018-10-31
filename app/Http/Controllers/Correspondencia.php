@@ -84,7 +84,7 @@ class Correspondencia extends Controller
         }
     }
 
-    public function registrarDependencia() 
+    public function registrarCorrespondencia() 
     {
     	try {
             
@@ -143,13 +143,19 @@ class Correspondencia extends Controller
             }
             
             if($depenciaId != ""){
-
+                
+                # Des-encriptar Usuario
+                $encodedString = base64_decode($_REQUEST['userId']);
+                $userId = explode("|", $encodedString);
+                $userId = $userId[1];
+                
                 $correspondenciaId = DB::table('correspondencia')->insertGetId(
                     [
                         'cor_referencia'       => $_REQUEST['corrReferencia'], 
                         'cor_dpc_id_fk'        => $depenciaId,
                         'cor_dep_id_fk'        => $departamentoId,
-                        'cor_usr_id_fk'        => $_REQUEST['corrSelectedDirigidoA'],
+                        'cor_dirigido_a_id_fk' => $_REQUEST['corrSelectedDirigidoA'],
+                        'cor_creador_id_fk'    => $userId,
                         'cor_descripcion'      => $_REQUEST['corrDescripcion'],
                         'cor_observaciones'    => $_REQUEST['corrObservaciones'],
                         'cor_reg_nueva_dpc'    => (($_REQUEST['nuevaDependencia'] === 'true') ? "1" : "0"),
