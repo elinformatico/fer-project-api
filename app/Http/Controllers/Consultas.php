@@ -40,9 +40,8 @@ class Consultas extends Controller
                     } else {
                       
                         $userData =  $userData = Utils::getDataUser(Utils::decodeUserId($_REQUEST['userId']));
-                      
                         if(isset($userData->typeUser) && $userData->typeUser != "admin") {
-                            $query->where("cor_creador_id_fk", "=", Utils::decodeUserId($userData->user_id));    
+                            $query->where("cor_creador_id_fk", "=", Utils::decodeUserId($_REQUEST['userId']));    
                         }
                     }
          
