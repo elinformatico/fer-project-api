@@ -94,7 +94,7 @@ class Correspondencia extends Controller
 			if(isset($_REQUEST['corrTiempoLimiteRespuesta']) && $_REQUEST['corrTiempoLimiteRespuesta'] != "") 
 			{
 				$fechaObtenida = explode("/", $_REQUEST['corrTiempoLimiteRespuesta']);
-            	$fechaLimiteRespuesta =  "{$fechaObtenida[2]}-{$fechaObtenida[0]}-$fechaObtenida[1] 23:59:59";	
+            	$fechaLimiteRespuesta =  "{$fechaObtenida[0]}-{$fechaObtenida[1]}-$fechaObtenida[2] 23:59:59";	
 			}
             
             $depenciaId = "";
