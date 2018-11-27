@@ -36,5 +36,6 @@ Route::group(['prefix' => '/', 'middleware' => ['guest']], function() {
     
     # Consultas
     Route::post('get/consultas/correspondencia', 'Consultas@getCorrespondencia');
+    Route::post('get/consultas/memos-oficios', 'Consultas@getMemosOficios');
     
 });

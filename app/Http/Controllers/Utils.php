@@ -43,4 +43,19 @@ class Utils extends Controller
             return $usuario;
         }
     }
+  
+    public static function querySingleData($table, $fields, $whereField, $whereData) 
+    {
+        $data = [];
+        try {
+            $result = DB::table($table)
+                ->select($fields)
+                ->where($whereField, "=", $whereData)
+                ->first();
+                return $result;
+        
+        } catch(\Illuminate\Database\QueryException $e){
+            return $result;
+        }
+    }
 }

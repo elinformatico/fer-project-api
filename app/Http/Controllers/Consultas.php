@@ -38,7 +38,7 @@ class Consultas extends Controller
                         $query->where("cor_creador_id_fk", "=", $_REQUEST['selectedUserId'] );
                     } else {
                       
-                        $userData =  $userData = Utils::getDataUser(Utils::decodeUserId($_REQUEST['userId']));
+                        $userData = $userData = Utils::getDataUser(Utils::decodeUserId($_REQUEST['userId']));
                         if(isset($userData->typeUser) && $userData->typeUser != "admin") {
                             $query->where("cor_creador_id_fk", "=", Utils::decodeUserId($_REQUEST['userId']));    
                         }
@@ -153,12 +153,128 @@ class Consultas extends Controller
       
     }
   
-    public function getCorrespondenciaByUser() {
-    
-    }
-  
-    public function getMemosCorrespondencia() {
+    public function getMemosOficios() {
         
+        try {
+            
+            $table =  str_replace("s", "", $_REQUEST['buscarPor']);
+            $inicial = ($_REQUEST['buscarPor'] === "memos" ? "M" : "O");
+            
+            $resultados = DB::table($table)
+                ->select(
+                    "{$table}_id as id",
+                    "{$table}_tipo_turnado_a as tipo",
+                    DB::raw("CONCAT('{$inicial}', {$table}_id) as folio"),
+                    DB::raw("CONCAT(usr_nombres, ' ', usr_apellido_paterno, ' ', usr_apellido_materno) as creador"),
+                    "{$table}_turnado_a_id_fk as turnado_a_id",
+                    "{$table}_turnado_a_txt as abierto_txt",
+                    "{$table}_anio as anio",
+                    "{$table}_asunto as asunto",
+                    "{$table}_observaciones as observaciones",
+                    "{$table}_fecha_creacion as fecha_creacion"
+                )
+                ->leftjoin("usuario", "usr_id", "=", "{$table}_creador_id_fk")
+                ->where(function($query) {
+                    
+                    $table =  str_replace("s", "", $_REQUEST['buscarPor']);
+                    
+                    if($_REQUEST["selectedUser"] == "true"){
+                        $query->where("{$table}_creador_id_fk", "=", $_REQUEST['selectedUserId'] );
+                    } else {
+                      
+                        $userData = $userData = Utils::getDataUser(Utils::decodeUserId($_REQUEST['userId']));
+                        if(isset($userData->typeUser) && $userData->typeUser != "admin") {
+                            $query->where("{$table}_creador_id_fk", "=", Utils::decodeUserId($_REQUEST['userId']));    
+                        }
+                    }
+         
+                    if($_REQUEST['fechaInicial'] != "" && $_REQUEST['fechaFinal'] != "") 
+                    {    
+                        $fechaInicial = str_replace("/", "-", $_REQUEST['fechaInicial']) . " 00:00:00";
+                        $fechaFinal   = str_replace("/", "-", $_REQUEST['fechaFinal']  ) . " 23:59:59";
+                        
+                        $query->where("{$table}_fecha_creacion", ">=", $fechaInicial);
+                        $query->where("{$table}_fecha_creacion", "<=", $fechaFinal);
+                    }
+                })
+                ->get();
+            
+                $filterResultados = [];
+                foreach($resultados as $value) 
+                {
+                    $turnadoA_nombre = "";
+                    
+                    if($value->tipo === "abierto") {
+                        $turnadoA_nombre = $value->abierto_txt;
+                        
+                    } else if($value->tipo === "usuario") {
+                        
+                        $usuario = Utils::querySingleData("usuario", [
+                            DB::raw("CONCAT(usr_nombres, ' ', usr_apellido_paterno, ' ', usr_apellido_materno) as usuario")
+                        ], "usr_id", $value->turnado_a_id);
+                        
+                        if(isset($usuario->usuario)) {
+                            $turnadoA_nombre = $usuario->usuario;
+                        }
+                        
+                    # Dependencia buscara por el ID de la Correspondencia
+                    } else if($value->tipo === "dependencia") {
+                        
+                        $dep = Utils::querySingleData("correspondencia", [
+                            DB::raw("CONCAT('C', cor_id) as folio"),
+                            "cor_referencia as referencia",
+                             DB::raw(
+                                "(SELECT dpc_nombre
+                                  FROM dependencia WHERE dpc_id = cor_dpc_id_fk) as dependencia"
+                            ),
+                        ], "cor_id", $value->turnado_a_id);
+                        
+                        if(isset($dep->folio) && isset($dep->referencia)) {
+                            $turnadoA_nombre = "Folio: " . $dep->folio . ", " . $dep->referencia . ", " . $dep->dependencia;
+                        }
+                    }
+                    
+                    $fechaCreacion = substr($value->fecha_creacion, 0, 10);
+                    $anio = str_replace("anio_", "", $value->anio);
+                    
+                    $row = [
+                        "id"               => $value->id,
+                        "tipo"             => $value->tipo,
+                        "tabla"            => ucfirst($table), # Capital Letter
+                        "folio"            => $value->folio,
+                        "creador"          => $value->creador,
+                        "turnado_a"        => $turnadoA_nombre,
+                        "abierto_txt"      => $value->abierto_txt,
+                        "anio"             => ucfirst($anio), # Capital Letter
+                        "asunto"           => $value->asunto,
+                        "observaciones"    => $value->observaciones,
+                        "fecha_creacion"   => $fechaCreacion,
+                    ];
+                    array_push($filterResultados, $row);  
+                }
+            
+                if(count($resultados) > 0) {
+                    return Response()->json(
+                        array(
+                            'msg'              => "Se obtuvieron los datos correctamente para {$table}", 
+                            'resultados'       => $filterResultados,
+                            'status'           => "success",
+                        )
+                    );
+                } else {
+                    return Response()->json(
+                        array(
+                            'msg'			    => 'No se encontraron correspondencias con los criterios de busqueda establecidos', 
+                            'resultados'        => [],
+                            'status'		    => "error",
+                        )
+                    );
+                }
+            
+        } catch(\Illuminate\Database\QueryException $e){
+            return Response()->json(
+                array('msg'=>'Error de query al consultar los datos.','error'=>$e)
+            );
+        }
     }
-  
 }
