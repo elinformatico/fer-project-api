@@ -38,4 +38,5 @@ Route::group(['prefix' => '/', 'middleware' => ['guest']], function() {
     Route::post('get/consultas/correspondencia', 'Consultas@getCorrespondencia');
     Route::post('get/consultas/memos-oficios', 'Consultas@getMemosOficios');
     
+    Route::get('get/pdf', 'Consultas@generatePdf');
 });

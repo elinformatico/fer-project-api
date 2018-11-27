@@ -277,4 +277,21 @@ class Consultas extends Controller
             );
         }
     }
+  
+    public function generatePdf() 
+    {        
+        $data =  [
+            'quantity'      => '1' ,
+            'description'   => 'some ramdom text',
+            'price'   => '500',
+            'total'     => '500'
+        ];
+        
+        $date = date('Y-m-d');
+        $invoice = "2222";
+        $view =  \View::make('invoice', compact('data', 'date', 'invoice'))->render();
+        $pdf = \App::make('dompdf.wrapper');
+        $pdf->loadHTML($view);
+        return $pdf->stream('invoice');
+    }
 }
