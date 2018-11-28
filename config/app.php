@@ -160,6 +160,7 @@ return [
          * Own Providers
          */
         Barryvdh\DomPDF\ServiceProvider::class,
+        Collective\Html\HtmlServiceProvider::class,
 
     ],
 
@@ -206,8 +207,10 @@ return [
         'URL' => Illuminate\Support\Facades\URL::class,
         'Validator' => Illuminate\Support\Facades\Validator::class,
         'View' => Illuminate\Support\Facades\View::class,
-        // 'PDF' => Barryvdh\DomPDF\Facade:class,
-        'PDF' => 'Barryvdh\DomPDF\Facade',
+        # Own Aliases
+        # 'PDF' => 'Barryvdh\DomPDF\Facade',
+        'Form' => Collective\Html\FormFacade::class,
+        'HTML' => Collective\Html\HtmlFacade::class,
     ],
 
 ];

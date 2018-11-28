@@ -15,7 +15,9 @@
         "phpunit/phpunit": "~4.0",
         "symfony/css-selector": "2.8.*|3.0.*",
         "symfony/dom-crawler": "2.8.*|3.0.*",
-        "barryvdh/laravel-dompdf": "0.6.*"
+        "barryvdh/laravel-dompdf": "0.6.*",
+        "mpdf/mpdf": "^6.0",
+        "laravelcollective/html": "5.2.*"
     },
     "autoload": {
         "classmap": [

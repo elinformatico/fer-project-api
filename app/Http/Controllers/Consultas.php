@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Utils;
 use DB;
+use App\Http\Controllers\PdfWrapper as PDF;
 
 class Consultas extends Controller
 {
@@ -281,17 +282,26 @@ class Consultas extends Controller
     public function generatePdf() 
     {        
         $data =  [
-            'quantity'      => '1' ,
-            'description'   => 'some ramdom text',
-            'price'   => '500',
-            'total'     => '500'
+            'title'       => '1' ,
+            'description' => 'HCL Technologies',
+            'price'       => '500',
+            'results'     => '500'
         ];
         
-        $date = date('Y-m-d');
-        $invoice = "2222";
-        $view =  \View::make('invoice', compact('data', 'date', 'invoice'))->render();
+        // ============ DOMPDF ==========================
+        /*$date = date('Y-m-d');
+        $invoice = "DEV15579";
+        $view =  \View::make('example', compact('data', 'date', 'invoice'))->render();
         $pdf = \App::make('dompdf.wrapper');
-        $pdf->loadHTML($view);
-        return $pdf->stream('invoice');
+        $pdf->loadHTML($view)->setPaper('a4');
+        return $pdf->stream('invoice');*/
+        // ============ DOMPDF ==========================
+        
+        // mPDF --> https://todoconk.com/2016/02/23/como-crear-archivos-pdf-con-php/
+        $pdf = new PDF('utf-8');
+        $header = \View::make('example')->render();
+        $pdf->loadView('consultas', ['data' => $data]);
+        # $pdf->download('example.pdf');    # <--- Opcion para descargar directamente el PDF
+        $pdf->stream('consultas.pdf');      # <--- Opcion para visualizar el PDF en el navegador
     }
 }

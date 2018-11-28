@@ -39,4 +39,14 @@ Route::group(['prefix' => '/', 'middleware' => ['guest']], function() {
     Route::post('get/consultas/memos-oficios', 'Consultas@getMemosOficios');
     
     Route::get('get/pdf', 'Consultas@generatePdf');
+    
+    # Example: https://s3-eu-west-1.amazonaws.com/htmlpdfapi.production/free_html5_invoice_templates/example2/index.html
+    Route::get('get/html', function () {
+        return view('example',  [
+            'quantity'      => '1' ,
+            'description'   => 'some ramdom text',
+            'price'         => '500',
+            'total'         => '500'
+        ]);
+    });
 });

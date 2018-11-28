@@ -3,6 +3,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
     <title>Example 2</title>
+    {!! HTML::style('pdf.css') !!}
   </head>
   <body>
 
@@ -35,7 +36,7 @@
           <tr>
             <td colspan="2"></td>
             <td >TOTAL</td>
-            <td>$6,500.00</td>
+            <td>$6,500.00 </td>
           </tr>
         </tfoot>
       </table>
