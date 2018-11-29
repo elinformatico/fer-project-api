@@ -132,6 +132,7 @@ class Consultas extends Controller
                     array(
                         'msg'              => "Se obtuvieron los datos correctamente", 
                         'correspondencias' => $filterCorrespondencia,
+                        'linkPdf'          => $this->generateLinkPdf(),
                         'status'           => "success",
                     )
                 );
@@ -259,6 +260,7 @@ class Consultas extends Controller
                         array(
                             'msg'              => "Se obtuvieron los datos correctamente para {$table}", 
                             'resultados'       => $filterResultados,
+                            'linkPdf'          => $this->generateLinkPdf(),
                             'status'           => "success",
                         )
                     );
@@ -278,30 +280,54 @@ class Consultas extends Controller
             );
         }
     }
-  
+    
+    public function generateLinkPdf() 
+    {
+        $link  = "?userId={$_REQUEST['userId']}&";
+        $link .= "selectedUser={$_REQUEST['selectedUser']}&";
+        $link .= "selectedUserId={$_REQUEST['selectedUserId']}&";
+        $link .= "fechaInicial={$_REQUEST['fechaInicial']}&";
+        $link .= "fechaFinal={$_REQUEST['fechaFinal']}&";
+        $link .= "buscarPor={$_REQUEST['buscarPor']}";
+        
+        return $link;
+    }
+    
     public function generatePdf() 
     {        
+        # Seteamos la Zona Horaria para la fecha de creacion del documento
+        date_default_timezone_set('America/Mexico_City');
+        
+        $results = [];
+        if(isset($_REQUEST['buscarPor']) && ($_REQUEST['buscarPor'] === "memo" || $_REQUEST['buscarPor'] === "oficio")) 
+        {    
+            // Obtenemos los datos de la funcion con todos los parametros seteados por la funcion "generateLinkPdf"
+            $results = $this->getMemosOficios()->getData();
+            $results = $results->resultados;
+            
+        } else if(isset($_REQUEST['buscarPor']) && $_REQUEST['buscarPor'] === "correspondencia") {
+            
+            $results = $this->getCorrespondencia()->getData();
+            $results = $results->correspondencias;
+        }
+        
         $data =  [
-            'title'       => '1' ,
-            'description' => 'HCL Technologies',
-            'price'       => '500',
-            'results'     => '500'
+            'title'         => "Resultados de {$_REQUEST['buscarPor']}",
+            'description'   => 'Nombre de la Empresa',
+            'type'          => ucfirst($_REQUEST['buscarPor']) . "s",
+            'fechaCreacion' => date("Y-m-d") . " a las " . date("H:i:s") . " horas",
+            'results'       => $results
         ];
         
-        // ============ DOMPDF ==========================
-        /*$date = date('Y-m-d');
-        $invoice = "DEV15579";
-        $view =  \View::make('example', compact('data', 'date', 'invoice'))->render();
-        $pdf = \App::make('dompdf.wrapper');
-        $pdf->loadHTML($view)->setPaper('a4');
-        return $pdf->stream('invoice');*/
-        // ============ DOMPDF ==========================
-        
-        // mPDF --> https://todoconk.com/2016/02/23/como-crear-archivos-pdf-con-php/
-        $pdf = new PDF('utf-8');
-        $header = \View::make('example')->render();
-        $pdf->loadView('consultas', ['data' => $data]);
-        # $pdf->download('example.pdf');    # <--- Opcion para descargar directamente el PDF
-        $pdf->stream('consultas.pdf');      # <--- Opcion para visualizar el PDF en el navegador
+        if(count($results) > 0) {
+             // mPDF --> https://todoconk.com/2016/02/23/como-crear-archivos-pdf-con-php/
+            $pdf = new PDF('utf-8');
+            $header = \View::make('consultas')->render();
+            $pdf->loadView('consultas', ['data' => $data]);
+            # $pdf->download('consultas.pdf');    # <--- Opcion para descargar directamente el PDF
+            $pdf->stream('consultas.pdf');      # <--- Opcion para visualizar el PDF en el navegador     
+        } else {
+            echo "<h2>No hay resultados para poder generar el PDF!</h2>";   
+        }
     }
 }

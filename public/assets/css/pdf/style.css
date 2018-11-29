@@ -5,8 +5,6 @@
 
 .page_break { page-break-before: always; }
 
-
-
 .clearfix:after {
   content: "";
   display: table;
@@ -115,14 +113,14 @@ table td {
 
 table td h3{
   color: #57B223;
-  font-size: 1em;
+  font-size: 0.8em;
   font-weight: normal;
   margin: 0 0 0.2em 0;
 }
 
 table .no {
   color: #FFFFFF;
-  font-size: 1em;
+  font-size: 0.8em;
   background: #57B223;
 }
 
@@ -137,6 +135,32 @@ table .unit {
 table .qty {
 }
 
+table .cor_green {
+    background-color: #7CF700;
+    font-style: bold;
+}
+
+table .cor_yellow {
+  background-color: yellow;
+  font-style: bold;
+}
+
+table .cor_orange {
+  background-color: orange;
+  font-style: bold;
+}
+
+table .cor_red_low{
+  background-color: #FA7D7D; 
+  font-style: bold; 
+}
+
+table .cor_red_high {
+  background-color: #F70000;
+  color: #E8E8E8;
+  font-style: bold;
+}
+
 table .total {
   background: #57B223;
   color: #FFFFFF;
@@ -145,7 +169,7 @@ table .total {
 table td.unit,
 table td.qty,
 table td.total {
-  font-size: 1em;
+  font-size: 0.8em;
 }
 
 table tbody tr:last-child td {
@@ -156,7 +180,7 @@ table tfoot td {
   padding: 10px 20px;
   background: #FFFFFF;
   border-bottom: none;
-  font-size: 1.2em;
+  font-size: 0.8em;
   white-space: nowrap; 
   border-top: 1px solid #AAAAAA; 
 }
@@ -167,7 +191,7 @@ table tfoot tr:first-child td {
 
 table tfoot tr:last-child td {
   color: #57B223;
-  font-size: 1.4em;
+  font-size: 0.8em;
   border-top: 1px solid #57B223; 
 
 }
