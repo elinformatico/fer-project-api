@@ -38,6 +38,7 @@ Route::group(['prefix' => '/', 'middleware' => ['guest']], function() {
     Route::post('get/consultas/correspondencia', 'Consultas@getCorrespondencia');
     Route::post('get/consultas/memos-oficios', 'Consultas@getMemosOficios');
     
+    # Export PDF
     Route::get('get/pdf', 'Consultas@generatePdf');
     
     # Example: https://s3-eu-west-1.amazonaws.com/htmlpdfapi.production/free_html5_invoice_templates/example2/index.html
@@ -49,4 +50,7 @@ Route::group(['prefix' => '/', 'middleware' => ['guest']], function() {
             'total'         => '500'
         ]);
     });
+    
+    # Export CSV
+    Route::get('get/csv', 'Consultas@generateCSV');
 });

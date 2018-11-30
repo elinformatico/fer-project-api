@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use App\Http\Controllers\Utils;
 use DB;
+use Response;
 use App\Http\Controllers\PdfWrapper as PDF;
 
 class Consultas extends Controller
@@ -297,13 +298,11 @@ class Consultas extends Controller
         return $link;
     }
     
-    public function generatePdf() 
-    {        
-        # Seteamos la Zona Horaria para la fecha de creacion del documento
-        date_default_timezone_set('America/Mexico_City');
+    private function getDataForPdfAndCsv() 
+    {    
+        $results = [];
         $linkPdf = "";
         
-        $results = [];
         if(isset($_REQUEST['buscarPor']) && ($_REQUEST['buscarPor'] === "memos" || $_REQUEST['buscarPor'] === "oficios")) 
         {    
             // Obtenemos los datos de la funcion con todos los parametros seteados por la funcion "generateLinkPdf"
@@ -327,9 +326,18 @@ class Consultas extends Controller
             'linkPdf'       => $linkPdf
         ];
         
+        return $data;
+    }
+    
+    public function generatePdf() 
+    {        
+        # Seteamos la Zona Horaria para la fecha de creacion del documento
+        date_default_timezone_set('America/Mexico_City');
+        
+        $data = $this->getDataForPdfAndCsv();
         # echo "<pre>"; print_r($data); echo "</pre>"; exit;
         
-        if(count($results) > 0) {
+        if(count($data['results']) > 0) {
              // mPDF --> https://todoconk.com/2016/02/23/como-crear-archivos-pdf-con-php/
             $pdf = new PDF('utf-8');
             $header = \View::make('consultas')->render();
@@ -339,5 +347,72 @@ class Consultas extends Controller
         } else {
             echo "<h2>No hay resultados para poder generar el PDF!</h2>";   
         }
+    }
+    
+    public function generateCSV() 
+    {    
+        $data = $this->getDataForPdfAndCsv();
+        $results = $data['results'];
+        $dataType = $data['type'];
+        $columns = [];
+        
+        $headers = array(
+            "Content-type" => "text/csv",
+            "Content-Disposition" => "attachment; filename=" . ucfirst($dataType) . "_" . date("Y-m-d") . ".csv",
+            "Pragma" => "no-cache",
+            "Cache-Control" => "must-revalidate, post-check=0, pre-check=0",
+            "Expires" => "0"
+        );
+        
+        # echo "<pre>"; print_r($data); echo "</pre>"; exit;
+        
+        if($dataType == "memos" || $dataType == "oficios")  {
+            $columns = array('Folio', 'Tipo', 'Creado_Por', 'Turnado_A', 'Anio', 'Asunto', 'Observaciones', 'Fecha Creacion');    
+            
+        } else if($dataType == "correspondencia") {
+            $columns = array('Folio', 'Tipo', 'Fecha_Creado', 'Solicitante', 'Dirigido_A', 'Depto_Dirigido', 'Usuario_Dirigido', 'Referencia', 'Fecha_Limite', 'Estatus');
+        }
+
+        $callback = function() use ($results, $columns, $dataType)
+        {
+            $file = fopen('php://output', 'w');
+            fputcsv($file, $columns);
+
+            foreach($results as $row) {
+                
+                if($dataType == "memos" || $dataType == "oficios") 
+                {
+                    fputcsv($file, [
+                            $row->folio, 
+                            $row->tabla, 
+                            utf8_decode($row->creador), 
+                            utf8_decode($row->turnado_a), 
+                            $row->anio, 
+                            utf8_decode($row->asunto), 
+                            utf8_decode($row->observaciones), 
+                            $row->fecha_creacion
+                        ]
+                    ); 
+                } else if($dataType == "correspondencia") {
+                    
+                    fputcsv($file, [
+                            $row->folio, 
+                            $dataType, 
+                            $row->fecha_creacion, 
+                            utf8_decode($row->creador), 
+                            utf8_decode($row->dirigido_a), 
+                            utf8_decode($row->depto_dirigido), 
+                            utf8_decode($row->persona_dirigida), 
+                            utf8_decode($row->referencia),
+                            $row->fecha_limite,
+                            utf8_decode($row->estatus_limite)
+                        ]
+                    );
+                }
+            }
+            fclose($file);
+        };
+        
+        return Response::stream($callback, 200, $headers);
     }
 }
