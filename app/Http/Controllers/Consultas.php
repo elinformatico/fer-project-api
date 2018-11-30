@@ -283,9 +283,13 @@ class Consultas extends Controller
     
     public function generateLinkPdf() 
     {
+        $selectedUserId = ($_REQUEST["selectedUser"] == "true") 
+          ? $_REQUEST['selectedUserId'] 
+          : $_REQUEST['userId'];
+      
         $link  = "?userId={$_REQUEST['userId']}&";
         $link .= "selectedUser={$_REQUEST['selectedUser']}&";
-        $link .= "selectedUserId={$_REQUEST['selectedUserId']}&";
+        $link .= "selectedUserId={$selectedUserId}&";
         $link .= "fechaInicial={$_REQUEST['fechaInicial']}&";
         $link .= "fechaFinal={$_REQUEST['fechaFinal']}&";
         $link .= "buscarPor={$_REQUEST['buscarPor']}";
@@ -297,27 +301,33 @@ class Consultas extends Controller
     {        
         # Seteamos la Zona Horaria para la fecha de creacion del documento
         date_default_timezone_set('America/Mexico_City');
+        $linkPdf = "";
         
         $results = [];
-        if(isset($_REQUEST['buscarPor']) && ($_REQUEST['buscarPor'] === "memo" || $_REQUEST['buscarPor'] === "oficio")) 
+        if(isset($_REQUEST['buscarPor']) && ($_REQUEST['buscarPor'] === "memos" || $_REQUEST['buscarPor'] === "oficios")) 
         {    
             // Obtenemos los datos de la funcion con todos los parametros seteados por la funcion "generateLinkPdf"
             $results = $this->getMemosOficios()->getData();
+            $linkPdf = $results->linkPdf;
             $results = $results->resultados;
-            
+
         } else if(isset($_REQUEST['buscarPor']) && $_REQUEST['buscarPor'] === "correspondencia") {
             
             $results = $this->getCorrespondencia()->getData();
+            $linkPdf = $results->linkPdf;
             $results = $results->correspondencias;
         }
         
         $data =  [
             'title'         => "Resultados de {$_REQUEST['buscarPor']}",
             'description'   => 'Nombre de la Empresa',
-            'type'          => ucfirst($_REQUEST['buscarPor']) . "s",
+            'type'          => $_REQUEST['buscarPor'],
             'fechaCreacion' => date("Y-m-d") . " a las " . date("H:i:s") . " horas",
-            'results'       => $results
+            'results'       => $results,
+            'linkPdf'       => $linkPdf
         ];
+        
+        # echo "<pre>"; print_r($data); echo "</pre>"; exit;
         
         if(count($results) > 0) {
              // mPDF --> https://todoconk.com/2016/02/23/como-crear-archivos-pdf-con-php/

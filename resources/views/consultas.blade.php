@@ -27,13 +27,13 @@
           <div class="email"><a href="mailto:john@example.com">john@example.com</a></div>
         </div> -->
         <div id="invoice">
-          <h1>{{ $data['type'] }}</h1>
+          <h1>{{ ucfirst($data['type']) }}</h1>
           <div class="date">Documento generado: {{ $data['fechaCreacion'] }}</div>
           <!-- <div class="date">Due Date: 30/06/2014</div> -->
         </div>
       </div>
       
-      @if($data['type'] === "Memos" || $data['type'] === "Oficios")
+      @if($data['type'] === "memos" || $data['type'] === "oficios")
         
             				
          <table border="0" cellspacing="0" cellpadding="0">
@@ -64,7 +64,7 @@
               @endforeach
             </tbody>
           </table>
-      @elseif ($data['type'] === "Correspondencias")
+      @elseif ($data['type'] === "correspondencia")
         <table border="0" cellspacing="0" cellpadding="0">
             <thead>
               <tr>
