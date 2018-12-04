@@ -342,13 +342,14 @@ class Consultas extends Controller
             $pdf = new PDF('utf-8');
             $header = \View::make('consultas')->render();
             $pdf->loadView('consultas', ['data' => $data]);
-            # $pdf->download('consultas.pdf');    # <--- Opcion para descargar directamente el PDF
-            $pdf->stream('consultas.pdf');      # <--- Opcion para visualizar el PDF en el navegador     
+            # $pdf->download(ucfirst($data['type']) . "_" . date("Y-m-d") . ".pdf");    # <--- Opcion para descargar directamente el PDF
+            $pdf->stream(ucfirst($data['type']) . "_" . date("Y-m-d") . ".pdf");        # <--- Opcion para visualizar el PDF en el navegador     
         } else {
             echo "<h2>No hay resultados para poder generar el PDF!</h2>";   
         }
     }
     
+    # Fuente: https://stackoverflow.com/questions/32441327/csv-export-in-laravel-5-controller
     public function generateCSV() 
     {    
         $data = $this->getDataForPdfAndCsv();

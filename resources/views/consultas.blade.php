@@ -13,7 +13,7 @@
       <div id="company">
         <h2 class="name">{{ $data['description'] }} </h2>
         <div>Documento generado de manera Automatica</div>
-        <div>Cual error favor de reportarlo al siguiente correo:</div>
+        <div>Cualquier error favor de reportarlo al siguiente correo:</div>
         <div><a href="mailto:company@example.com">donoe1985@gmail.com</a></div>
       </div>
       </div>
@@ -34,8 +34,7 @@
       </div>
       
       @if($data['type'] === "memos" || $data['type'] === "oficios")
-        
-            				
+   				
          <table border="0" cellspacing="0" cellpadding="0">
             <thead>
               <tr>
@@ -106,7 +105,7 @@
       </div> -->
     </main>
     <footer>
-      Este documento fue generado de manera automatica utilzando los criterios de busqueda establecidos.
+      Este documento fue generado de manera automatica utilizando los criterios de busqueda establecidos.
     </footer>
   </body>
 </html>
