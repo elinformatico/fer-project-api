@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use GuzzleHttp\Client;
 use DB;
+use App\Http\Controllers\Utils;
 
 class Usuario extends Controller
 {
@@ -29,27 +30,33 @@ class Usuario extends Controller
 
     public function getNombresUsuarios() 
     {
-        try {
-            $usuarios = DB::table('usuario')
-                            ->select(
-                                DB::raw("CONCAT(usr_nombres, ' ', usr_apellido_paterno, ' ', usr_apellido_materno) as nombre"),
-                                "usr_id as id",
-                                "dep_nombre as departamento"
-                            )
-                            ->leftjoin('jefe_departamento', 'jef_usr_id_fk', '=', 'usr_id')
-                            ->leftjoin('departamento', 'dep_id', '=', 'jef_dep_id_fk')
-                            ->get();
-            return Response()->json(
-                array(
-                    'msg'=>'Se obtuvieron todos los usuarioa', 
-                    'usuarios' => $usuarios,
-                    "status"    => "success"
-                )
-            );
-        } catch(\Illuminate\Database\QueryException $e){
-            return Response()->json(
-                array('msg'=>'Error al obtener los usuarios','error'=>$e)
-            );
+        $tokenValidation = Utils::validateApiToken()->getData();
+        if($tokenValidation->status == 200) 
+        {
+            try {
+                $usuarios = DB::table('usuario')
+                                ->select(
+                                    DB::raw("CONCAT(usr_nombres, ' ', usr_apellido_paterno, ' ', usr_apellido_materno) as nombre"),
+                                    "usr_id as id",
+                                    "dep_nombre as departamento"
+                                )
+                                ->leftjoin('jefe_departamento', 'jef_usr_id_fk', '=', 'usr_id')
+                                ->leftjoin('departamento', 'dep_id', '=', 'jef_dep_id_fk')
+                                ->get();
+                return Response()->json(
+                    array(
+                        'msg'=>'Se obtuvieron todos los usuarios', 
+                        'usuarios' => $usuarios,
+                        "status"    => "success"
+                    )
+                );
+            } catch(\Illuminate\Database\QueryException $e){
+                return Response()->json(
+                    array('msg'=>'Error al obtener los usuarios','error'=>$e)
+                );
+            }  
+        } else {
+            return Response()->json( $tokenValidation, $tokenValidation->status );
         }
     }
 
