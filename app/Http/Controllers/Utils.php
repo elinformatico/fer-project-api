@@ -6,6 +6,7 @@ use Illuminate\Http\Request;
 
 use App\Http\Requests;
 use DB;
+use App\Http\Controllers\Usuario;
 
 class Utils extends Controller
 {
@@ -15,6 +16,100 @@ class Utils extends Controller
             $userId = explode("|", $encodedString);
             $userId = $userId[1];
         return $userId;
+    }
+    
+    public static function isExpiredSession($dateExpired) {
+        $currentTime = date("Y-m-d G:i:s"); 
+        return strtotime($currentTime) < strtotime($dateExpired);
+    }
+    
+    public static function validateApiToken() {
+        
+        if(!isset($_SERVER['HTTP_TOKEN'])) {
+            return Response()->json(
+                array('status' => 401, 'msg'=>'No se pudo autenticar la peticion por falta del Token')
+            );
+        }
+        
+        if($_SERVER['HTTP_TOKEN'] == "") {
+            return Response()->json(
+                array('status' => 401, 'msg'=>'El token es requerido y no puede ir vacio!')
+            );
+        }
+        
+        $errorMessageToken = "";
+        $dataUser = [];
+        
+        # Token --> SEEK - DATATOKEN - PASSWORD
+        $apiTokenString = base64_decode($_SERVER['HTTP_TOKEN']);
+        $apiTokenObjects = explode("||", $apiTokenString);
+        
+        if(count($apiTokenObjects) == 3 && 
+            isset($apiTokenObjects[0]) && 
+            isset($apiTokenObjects[1]) && 
+            isset($apiTokenObjects[2]))
+        { 
+            $seek = base64_decode($apiTokenObjects[0]);
+            
+            if($seek == "Fer$#@!2018!..")
+            {    
+                $dataToken = base64_decode($apiTokenObjects[1]);
+                $passMd5   = base64_decode($apiTokenObjects[2]);
+
+                $dataTokenObject = explode("|", $dataToken);
+
+                if(count($dataTokenObject) == 5 && 
+                   isset($dataTokenObject[0]) &&
+                   isset($dataTokenObject[1]) &&
+                   isset($dataTokenObject[2]) &&
+                   isset($dataTokenObject[3]) &&
+                   isset($dataTokenObject[4]) &&
+                   is_numeric(base64_decode($dataTokenObject[0]))) 
+                {    
+                    $dataUser = [
+                      "userId"        => base64_decode($dataTokenObject[0]),
+                      "userName"      => base64_decode($dataTokenObject[1]),
+                      "fullName"      => base64_decode($dataTokenObject[2]),
+                      "role"          => base64_decode($dataTokenObject[3]),
+                      "dateExpired"   => base64_decode($dataTokenObject[4]),
+                    ];
+
+                    $user = new Usuario();
+                    $userDataDB = $user->getUsuario($dataUser['userName'], $passMd5);
+                    $userDataDB = $userDataDB->getData();
+
+                    if($userDataDB->status == 'error') {            
+                        return Response()->json(
+                            array('status' => 401, 'msg'=> 'El usuario/password del Token no son validos')
+                        );
+                    } else {
+                        if(Utils::isExpiredSession($dataUser['dateExpired'])) {
+                            return Response()->json(
+                                array('status' => 408, 'msg'=> 'El Token ha expirado')
+                            ); 
+                        }
+                    }
+
+                } else {
+                    $errorMessageToken = "error-token";
+                }
+            } else {
+                $errorMessageToken = "error-token";
+            }
+            
+        } else {
+            $errorMessageToken = "error-token";
+        }
+        
+        if($errorMessageToken != "error-token") {
+            return Response()->json(
+                array('status' => 200, 'msg'=> 'El token se ha validado Correctamente', 'data' => $dataUser)
+            ); 
+        } else {
+            return Response()->json(
+                array('status' => 401, 'msg'=>'Lo sentimos! El Token proporcionado no es valido')
+            );  
+        }
     }
   
     public static function getDataUser($userId) 
