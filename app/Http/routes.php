@@ -53,4 +53,7 @@ Route::group(['prefix' => '/', 'middleware' => ['guest']], function() {
     
     # Export CSV
     Route::get('get/csv', 'Consultas@generateCSV');
+    
+    # Validate Token
+    Route::get("validate-session/{token}", 'Utils@validateSession');
 });

@@ -88,8 +88,9 @@ class Usuario extends Controller
             if(isset($user->username))
             {
                 $fullName = "{$user->nombre} {$user->paterno} {$user->materno}";
-
-                $token = $this->generateToken($user->user_id, $user->username, $fullName, $user->typeUser, 30);
+  
+                # Expired Token 24 hrs
+                $token = $this->generateToken($user->user_id, $user->username, $fullName, $user->typeUser, 5);
 
                 return Response()->json(
                     array(

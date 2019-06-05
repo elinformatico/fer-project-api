@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 use App\Http\Requests;
 use DB;
 use App\Http\Controllers\Usuario;
+use DateTime;
 
 class Utils extends Controller
 {
@@ -18,30 +19,48 @@ class Utils extends Controller
         return $userId;
     }
     
-    public static function isExpiredSession($dateExpired) {
-        $currentTime = date("Y-m-d G:i:s"); 
-        return strtotime($currentTime) < strtotime($dateExpired);
+    public static function isExpiredSession($dateExpired) 
+    {
+        $today_dt = new DateTime(date("Y-m-d G:i:s"));
+        $expire_dt = new DateTime($dateExpired);
+
+        return ($expire_dt < $today_dt);
     }
     
-    public static function validateApiToken() {
+    public function validateSession($token) {
+        $tokenValidation = Utils::validateApiToken($token)->getData();
+        return Response()->json( $tokenValidation, $tokenValidation->status );
+    }
+    
+    public static function validateApiToken($token = "") {
         
-        if(!isset($_SERVER['HTTP_TOKEN'])) {
-            return Response()->json(
-                array('status' => 401, 'msg'=>'No se pudo autenticar la peticion por falta del Token')
-            );
-        }
+        $tokenAuthentication = "";
         
-        if($_SERVER['HTTP_TOKEN'] == "") {
-            return Response()->json(
-                array('status' => 401, 'msg'=>'El token es requerido y no puede ir vacio!')
-            );
+        if(!isset($_SERVER['HTTP_TOKEN']) )
+        {    
+            if($token == ""){
+                return Response()->json(
+                    array('status' => 401, 'msg' => "Lo sentimos! El Token es requerido para completar la solicitud!")
+                );
+            } else {
+                $tokenAuthentication = $token;    
+            }
+            
+        } else {
+            if($_SERVER['HTTP_TOKEN'] == ""){
+                return Response()->json(
+                    array('status' => 401, 'msg' => "Lo sentimos! El Token no puede ir vacio!.")
+                );
+            } else {
+                $tokenAuthentication = $_SERVER['HTTP_TOKEN'];        
+            }
         }
         
         $errorMessageToken = "";
         $dataUser = [];
         
         # Token --> SEEK - DATATOKEN - PASSWORD
-        $apiTokenString = base64_decode($_SERVER['HTTP_TOKEN']);
+        $apiTokenString = base64_decode($tokenAuthentication);
         $apiTokenObjects = explode("||", $apiTokenString);
         
         if(count($apiTokenObjects) == 3 && 
@@ -73,23 +92,26 @@ class Utils extends Controller
                       "role"          => base64_decode($dataTokenObject[3]),
                       "dateExpired"   => base64_decode($dataTokenObject[4]),
                     ];
-
-                    $user = new Usuario();
-                    $userDataDB = $user->getUsuario($dataUser['userName'], $passMd5);
-                    $userDataDB = $userDataDB->getData();
-
-                    if($userDataDB->status == 'error') {            
-                        return Response()->json(
-                            array('status' => 401, 'msg'=> 'El usuario/password del Token no son validos')
-                        );
-                    } else {
-                        if(Utils::isExpiredSession($dataUser['dateExpired'])) {
+                    
+                    if(!Utils::isExpiredSession($dataUser['dateExpired'])) 
+                    {   
+                        $user = new Usuario();
+                        $userDataDB = $user->getUsuario($dataUser['userName'], $passMd5);
+                        $userDataDB = $userDataDB->getData();
+                        
+                        if($userDataDB->status == 'error') {            
                             return Response()->json(
-                                array('status' => 408, 'msg'=> 'El Token ha expirado')
-                            ); 
+                                array('status' => 401, 'msg'=> 'El usuario/password del Token no son validos')
+                            );
                         }
+                        
+                    } else {
+                        return Response()->json(
+                            # array('status' => 401, 'msg'=> "El Token con fecha {$dataUser['dateExpired']} ha expirado. ServerTime: ".date("Y-m-d G:i:s"))
+                            array('status' => 401, 'msg'=> "El Token ha expirado el {$dataUser['dateExpired']}")
+                        ); 
                     }
-
+                    
                 } else {
                     $errorMessageToken = "error-token";
                 }
