@@ -90,7 +90,7 @@ class Usuario extends Controller
                 $fullName = "{$user->nombre} {$user->paterno} {$user->materno}";
   
                 # Expired Token 24 hrs
-                $token = $this->generateToken($user->user_id, $user->username, $fullName, $user->typeUser, 5);
+                $token = $this->generateToken($user->user_id, $user->username, $fullName, $user->typeUser, env('TIME_EXPIRE_TOKEN_MINS', '5'));
 
                 return Response()->json(
                     array(
