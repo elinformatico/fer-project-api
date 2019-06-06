@@ -18,15 +18,18 @@ Route::get('/', function () {
 Route::group(['prefix' => '/', 'middleware' => ['guest']], function() { 
       
     # Usuarios
+    # ------------------------------------------------------------------------
 	Route::get('get/usuarios', 'Usuario@getUsuarios');
 	Route::get('get/usuario/{username}/{password}', 'Usuario@getUsuario');
 	Route::get('get/nombreUsuarios', 'Usuario@getNombresUsuarios');
-	
-	# Departamentos
-	Route::get('get/departamentos/', 'Departamentos@getDepartamentos');
-
-	# Usuarios
     Route::post('store/usuario', 'Usuario@registrarUsuario');
+    
+    # Validate Token
+    Route::get("validate-session/{token}", 'Utils@validateSession');
+    
+    # Fernando's System End-Points
+    # ------------------------------------------------------------------------
+	Route::get('get/departamentos/', 'Departamentos@getDepartamentos');
 
     # Correspondencia
     Route::get('get/dependencias', 'Correspondencia@getDependencias');
@@ -53,7 +56,28 @@ Route::group(['prefix' => '/', 'middleware' => ['guest']], function() {
     
     # Export CSV
     Route::get('get/csv', 'Consultas@generateCSV');
+});
+
+# End-points for Finance System (Control Fuel)
+Route::group(['prefix' => 'fnz/', 'middleware' => ['guest']], function() {
     
-    # Validate Token
-    Route::get("validate-session/{token}", 'Utils@validateSession');
+    # End-point to generate a Token
+    Route::get('generate-token/{username}/{passPlainText}', 'Utils@generateDevToken');
+    
+    # Catalogs
+    # ---------------------------------------------------------------------------------------
+    Route::get('get/categories', 'Catalogs@getCategories');
+    Route::get('get/paymentmethods', 'Catalogs@getPaymentMethods');
+    Route::get('get/paymentmethods/{type}', 'Catalogs@getPaymentMethodsByType');
+    Route::get('get/banks', 'Catalogs@getBanks');
+    Route::get('get/cars', 'Catalogs@getCars');
+    
+    # Module "Fue Control" (Registro Gasolina)
+    # ---------------------------------------------------------------------------------------
+    Route::get('get/kilometraje/{carId}', 'GasolinaController@getUltimoKilometrajeByCar');
+    Route::post('registrar/gasolina', 'GasolinaController@registrarGasolina');
+    
+    # Save the Financial Log
+    # ---------------------------------------------------------------------------------------
+    Route::post('store/financial/log', 'FinancialLog@saveFinancialLog');
 });
