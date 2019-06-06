@@ -31,6 +31,33 @@ class Utils extends Controller
         $tokenValidation = Utils::validateApiToken($token)->getData();
         return Response()->json( $tokenValidation, $tokenValidation->status );
     }
+  
+    public function generateDevToken($username, $passInPlainText) {
+        
+        $passMd5 = md5($passInPlainText);
+        
+        $user = new Usuario();
+        $userDataDB = $user->getUsuario($username, $passMd5);
+        $userDataDB = $userDataDB->getData();
+                        
+        if($userDataDB->status == 'success') {
+            
+             $seek = "Fer$#@!2018!..";
+             $apiToken = base64_encode(
+                base64_encode($seek) . "||" . base64_encode($userDataDB->token) . "||" . base64_encode($passMd5)
+             );
+            
+            return Response()->json(
+                array('status' => 'success', 'msg'=> 'El fue autenticado correctamente!', 'token' => $apiToken),
+                200
+            );
+        } else {
+             return Response()->json(
+                array('status' => 'error', 'msg'=> 'No se pudo autenticar el usuario'),
+                401 
+            );
+        }
+    }
     
     public static function validateApiToken($token = "") {
         
