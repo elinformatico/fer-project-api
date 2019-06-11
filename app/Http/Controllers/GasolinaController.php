@@ -48,25 +48,43 @@ class GasolinaController extends Controller
             {
                 if($carId > 0){
 
-                    $kilometraje = DB::table("registro_gasolina")
-                                    ->select("rgas_kilometraje as kilometraje")
+                    $datosVehiculo = DB::table("registro_gasolina")
+                                    # ->select("rgas_kilometraje as kilometraje")
                                     ->join("car", "rgas_car_id_fk", "=", "car_id")
                                     ->where("car_id", $carId)
-                                    ->max("rgas_kilometraje");
-
-                    if($kilometraje != null)
+                                    ->orderByRaw('rgas_id DESC LIMIT 1')
+                                    ->get();
+                    
+                    if(count($datosVehiculo) > 0) 
                     {
-                        return Response()->json(array(
-                        'status' => 'success', 
-                        'kilometraje' => $kilometraje, 
-                        'msg' => 'Se obtuvo el kilometraje para el carro con ID ' + $carId));
-
+                        $datosVehiculo = $datosVehiculo[0];
+                        
+                        # TODO, Poner fecha de este campo ("Y-m-d G:i:s");
+                        $dateChargeFuel = $datosVehiculo->rgas_fecha; 
+                        $pricePerLitre = ($datosVehiculo->rgas_monto / $datosVehiculo->rgas_litros);
+                        
+                        $strMessage = "El dia {$dateChargeFuel} se cargó al Vehiculo {$datosVehiculo->car_marca}, {$datosVehiculo->car_submarca} " . 
+                                      "la cantidad de {$datosVehiculo->rgas_litros} Litros con un " . 
+                                      "monto total de $ {$datosVehiculo->rgas_monto} MXN, donde su precio por Litro fue de: $ {$pricePerLitre} MXN. Su ultimo " . 
+                                      "Kilometraje registrado fue de: {$datosVehiculo->rgas_kilometraje} Kilometros.";
+         
+                        return Response()->json(
+                            array(
+                                'msg'               => "Se la informacion del ultimo registro del Vehiculo {$datosVehiculo->car_marca}, {$datosVehiculo->car_submarca} ", 
+                                'ultimoRegistro'    => $strMessage,
+                                'ultimoKilometraje' => $datosVehiculo->rgas_kilometraje,
+                                "status"            => "success"
+                            )
+                        );
+                        
                     } else {
-                        return Response()->json(array(
-                        'status' => 'error',
-                        'msg' => "The Car Id [{$carId}] does not exits"));
+                        return Response()->json(
+                            array(
+                                'msg'           => "No se encontro informacion del Vehiculo", 
+                                "status"        => "error"
+                            )
+                        );
                     }
-
                 } else {
                     return Response()->json(array(
                         'status' => 'error',

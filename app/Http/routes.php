@@ -80,4 +80,7 @@ Route::group(['prefix' => 'fnz/', 'middleware' => ['guest']], function() {
     # Save the Financial Log
     # ---------------------------------------------------------------------------------------
     Route::post('store/financial/log', 'FinancialLog@saveFinancialLog');
+    
+    # Utils
+    Route::get('register-login/{jsonData}', 'Utils@registerLogin');
 });

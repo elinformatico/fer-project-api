@@ -42,10 +42,8 @@ class Utils extends Controller
                         
         if($userDataDB->status == 'success') {
             
-             $seek = "Fer$#@!2018!..";
-             $apiToken = base64_encode(
-                base64_encode($seek) . "||" . base64_encode($userDataDB->token) . "||" . base64_encode($passMd5)
-             );
+            $seek = env('SEED_TOKEN', '');
+            $apiToken = Utils::generateAuthToken($seek, $userDataDB->token, $passMd5);
             
             return Response()->json(
                 array('status' => 'success', 'msg'=> 'El fue autenticado correctamente!', 'token' => $apiToken),
@@ -57,6 +55,17 @@ class Utils extends Controller
                 401 
             );
         }
+    }
+    
+    public static function generateAuthToken($seek, $token, $password) 
+    {
+        $apiToken = base64_encode(
+            base64_encode($seek) . "||" . 
+            base64_encode($token) . "||" . 
+            base64_encode($password)
+        );
+        # $signApiToken = encrypt($apiToken);
+        return $apiToken;
     }
     
     public static function validateApiToken($token = "") {
@@ -97,7 +106,7 @@ class Utils extends Controller
         { 
             $seek = base64_decode($apiTokenObjects[0]);
             
-            if($seek == "Fer$#@!2018!..")
+            if($seek == env('SEED_TOKEN', ''))
             {    
                 $dataToken = base64_decode($apiTokenObjects[1]);
                 $passMd5   = base64_decode($apiTokenObjects[2]);
@@ -201,5 +210,22 @@ class Utils extends Controller
         } catch(\Illuminate\Database\QueryException $e){
             return $result;
         }
+    }
+  
+    public static function generateDateString( $date ) {
+        
+    }
+  
+    public function registerLogin($jsonDataEncrypted) 
+    {
+        
+        # $jsonDataDecrypted = base64_decode($jsonDataEncrypted);
+        # $jsonDataDecoded = json_decode($jsonDataDecrypted);
+        
+        $dataEncrypted = encrypt("");
+        
+        return Response()->json(
+            array('status' => 200, 'msg'=> 'Registro hecho con Exito --> ' . decrypt($dataEncrypted))
+        ); 
     }
 }

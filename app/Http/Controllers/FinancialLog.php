@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use Illuminate\Http\Request;
 
 use App\Http\Requests;
+use App\Http\Controllers\Utils;
 use DB;
 
 class FinancialLog extends Controller
@@ -15,17 +16,17 @@ class FinancialLog extends Controller
 
             DB::table('financial_log')->insert(
                 [
-                    'log_user_id'       => $_REQUEST['log_user_id'],
+                    'log_user_id'     => Utils::decodeUserId($_REQUEST['log_user_id']),
                     'log_description' => $_REQUEST['log_description'],
-                    'log_amount'        => $_REQUEST['log_amount'],
+                    'log_amount'      => $_REQUEST['log_amount'],
 
                     # Foreign Keys
                     'log_cat_id_fk'  => $_REQUEST['log_cat_id_fk'],
                     'log_pmt_id_kf'  => $_REQUEST['log_pmt_id_kf'],
-                    'log_bank_id_fk'  => $_REQUEST['log_bank_id_fk'],
+                    'log_bank_id_fk' => $_REQUEST['log_bank_id_fk'],
 
                     # Date field
-                    'log_date'        => DB::raw('NOW()'),
+                    'log_date'       => DB::raw('NOW()'),
                 ]
             );
 
