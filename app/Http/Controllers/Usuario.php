@@ -60,17 +60,28 @@ class Usuario extends Controller
         }
     }
 
-    public function generateToken($user_id, $username, $fullName, $typeUser, $minutesToExpire) 
+    public function generateToken($user_id, $username, $passwordMd5, $fullName, $typeUser, $minutesToExpire) 
     {
+        $seed_token = env('SEED_TOKEN', '');
         $dateExpired = date("Y-m-d G:i:s", 
         mktime(date("G"), date("i") + $minutesToExpire, date("s"), date("m"), date("d"), date("Y"))); 
 
-        $token = base64_encode($user_id) . "|" .  base64_encode($username) . "|" . base64_encode($fullName) . "|" . base64_encode($typeUser) . "|" . base64_encode($dateExpired);
-        return $token;
+        $token = base64_encode($user_id) . "|" .  
+                 base64_encode($username) . "|" . 
+                 base64_encode($fullName) . "|" . 
+                 base64_encode($typeUser) . "|" . 
+                 base64_encode($dateExpired);
+        
+        $signToken = Utils::generateAuthToken($seed_token, $token, $passwordMd5);
+        
+        # return encrypt($signToken);
+        return $signToken;
     }
 
     public function getUsuario($username, $password) 
     {    
+        $seed_token = env('SEED_TOKEN', '');
+        
         try {
             $user = DB::table('usuario')
                             ->select(
@@ -90,11 +101,24 @@ class Usuario extends Controller
                 $fullName = "{$user->nombre} {$user->paterno} {$user->materno}";
   
                 # Expired Token 24 hrs
-                $token = $this->generateToken($user->user_id, $user->username, $fullName, $user->typeUser, env('TIME_EXPIRE_TOKEN_MINS', '5'));
+                $token = $this->generateToken(
+                    $user->user_id, 
+                    $username, 
+                    $password,
+                    $fullName, 
+                    $user->typeUser, 
+                    env('TIME_EXPIRE_TOKEN_MINS', '5')
+                );
 
                 return Response()->json(
                     array(
-                        'msg'       =>'Los datos de usuario se obtuvieron satisfactoriamente',            
+                        'msg'       =>'Los datos de usuario se obtuvieron satisfactoriamente',
+                        "usuario"   => [
+                            "userId"   => base64_encode($seed_token . "|" . $user->user_id),
+                            "userName" => $username,
+                            "fullName" => $fullName, 
+                            "role"     => $user->typeUser
+                        ],
                         "token"     => $token,
                         "status"    => "success",
                     )

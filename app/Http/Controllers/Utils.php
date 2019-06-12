@@ -96,6 +96,7 @@ class Utils extends Controller
         $dataUser = [];
         
         # Token --> SEEK - DATATOKEN - PASSWORD
+        # $apiTokenString = decrypt(base64_decode($tokenAuthentication));
         $apiTokenString = base64_decode($tokenAuthentication);
         $apiTokenObjects = explode("||", $apiTokenString);
         
