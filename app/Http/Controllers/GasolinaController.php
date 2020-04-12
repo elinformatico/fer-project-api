@@ -52,27 +52,29 @@ class GasolinaController extends Controller
                                     # ->select("rgas_kilometraje as kilometraje")
                                     ->join("car", "rgas_car_id_fk", "=", "car_id")
                                     ->where("car_id", $carId)
-                                    ->orderByRaw('rgas_id DESC LIMIT 1')
+                                    ->orderByRaw('rgas_id DESC LIMIT 2')
                                     ->get();
                     
                     if(count($datosVehiculo) > 0) 
                     {
-                        $datosVehiculo = $datosVehiculo[0];
+                        $datosVehiculoCurr = $datosVehiculo[0];
+                        $datosVehiculoPrev = $datosVehiculo[1];
                         
                         # TODO, Poner fecha de este campo ("Y-m-d G:i:s");
-                        $dateChargeFuel = $datosVehiculo->rgas_fecha; 
-                        $pricePerLitre = ($datosVehiculo->rgas_monto / $datosVehiculo->rgas_litros);
+                        $dateChargeFuel = $datosVehiculoCurr->rgas_fecha; 
+                        $pricePerLitre = round(($datosVehiculoCurr->rgas_monto / $datosVehiculoCurr->rgas_litros), 2);
+                        $distancePrevCurr = $datosVehiculoCurr->rgas_kilometraje - $datosVehiculoPrev->rgas_kilometraje;
                         
-                        $strMessage = "El dia {$dateChargeFuel} se cargó al Vehiculo {$datosVehiculo->car_marca}, {$datosVehiculo->car_submarca} " . 
-                                      "la cantidad de {$datosVehiculo->rgas_litros} Litros con un " . 
-                                      "monto total de $ {$datosVehiculo->rgas_monto} MXN, donde su precio por Litro fue de: $ {$pricePerLitre} MXN. Su ultimo " . 
-                                      "Kilometraje registrado fue de: {$datosVehiculo->rgas_kilometraje} Kilometros.";
+                        $strMessage = "El dia {$dateChargeFuel} se cargó al Vehiculo {$datosVehiculoCurr->car_marca}, {$datosVehiculoCurr->car_submarca} " . 
+                                      "la cantidad de {$datosVehiculoCurr->rgas_litros} Litros con un " . 
+                                      "monto total de $ {$datosVehiculoCurr->rgas_monto} MXN, donde su precio por Litro fue de: $ {$pricePerLitre} MXN. Su ultimo " . 
+                                      "Kilometraje registrado fue de {$datosVehiculoCurr->rgas_kilometraje} Kilometros. Distancia recorrida de la ultima carga {$distancePrevCurr} Km";
          
                         return Response()->json(
                             array(
-                                'msg'               => "Se la informacion del ultimo registro del Vehiculo {$datosVehiculo->car_marca}, {$datosVehiculo->car_submarca} ", 
+                                'msg'               => "Se obtuvo la informacion del ultimo registro del Vehiculo {$datosVehiculoCurr->car_marca}, {$datosVehiculoCurr->car_submarca} ", 
                                 'ultimoRegistro'    => $strMessage,
-                                'ultimoKilometraje' => $datosVehiculo->rgas_kilometraje,
+                                'ultimoKilometraje' => $datosVehiculoCurr->rgas_kilometraje,
                                 "status"            => "success"
                             )
                         );
@@ -97,5 +99,65 @@ class GasolinaController extends Controller
         } else {
             return Response()->json( $tokenValidation, $tokenValidation->status );
         }   
+    }
+  
+    public function getTotalCurrentMonthAmount($carId) 
+    {
+        $tokenValidation = Utils::validateApiToken()->getData();
+        if($tokenValidation->status == 200) 
+        {
+            try {
+                
+                # Getting the Last Day
+                $currentDate = date("Y-m-d");
+                $lastday = date('t',strtotime($currentDate));
+ 
+                $datosVehiculo = DB::table("registro_gasolina")
+                    ->select("rgas_monto as monto")
+                    ->join("car", "rgas_car_id_fk", "=", "car_id")
+                    ->where("car_id", $carId)
+                    ->whereBetween("rgas_fecha", [ date("Y-m") . "-01 00:00:00", date("Y-m") . "-{$lastday} 23:59:59"])
+                    ->get();
+                
+                $currentMonthAmount = 0;
+                $chargesCount = 0;
+                foreach($datosVehiculo as $vehiculo) 
+                {
+                    $currentMonthAmount += $vehiculo->monto;
+                    $chargesCount++;  
+                }
+                
+                $nameMonth = "";
+                switch(date("m")) {
+                    case "01": $nameMonth = "Enero"; break;
+                    case "02": $nameMonth = "Febrero"; break;
+                    case "03": $nameMonth = "Marzo"; break;
+                    case "04": $nameMonth = "Abril"; break;
+                    case "05": $nameMonth = "Mayo"; break;
+                    case "06": $nameMonth = "Junio"; break;
+                    case "07": $nameMonth = "Julio"; break;
+                    case "08": $nameMonth = "Agosto"; break;
+                    case "09": $nameMonth = "Septiembre"; break;
+                    case "10": $nameMonth = "Octubre"; break;
+                    case "11": $nameMonth = "Noviembre"; break;
+                    case "12": $nameMonth = "Diciembre"; break;
+                    default : break;
+                }              
+              
+                return Response()->json(
+                    array(
+                        "msg"                => "En este mes de {$nameMonth} has gastado $ " . number_format($currentMonthAmount) . " Pesos y cargado {$chargesCount} veces gasolina",
+                        "msgGastoMensual"    => $currentMonthAmount,
+                        "numRecargasActual"  => $chargesCount,
+                        "status"             => "success"
+                    )
+                );
+
+            }catch(\Illuminate\Database\QueryException $e){
+                    return Response()->json(array('status' => 'error', 'msg'=>'Error on DB System','error'=>$e));
+            }
+        } else {
+            return Response()->json( $tokenValidation, $tokenValidation->status );
+        }
     }
 }

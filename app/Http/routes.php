@@ -76,6 +76,8 @@ Route::group(['prefix' => 'fnz/', 'middleware' => ['guest']], function() {
     # ---------------------------------------------------------------------------------------
     Route::get('get/kilometraje/{carId}', 'GasolinaController@getUltimoKilometrajeByCar');
     Route::post('registrar/gasolina', 'GasolinaController@registrarGasolina');
+    Route::get('get/gasto-mensual/{carId}', 'GasolinaController@getTotalCurrentMonthAmount');
+    
     
     # Save the Financial Log
     # ---------------------------------------------------------------------------------------
